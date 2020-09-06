@@ -12,13 +12,13 @@ namespace Daenet.Common.Logging.Sql
     /// </summary>
     internal class ScopeManager
     {
-        internal static readonly AsyncLocal<List<DisposableScope>> m_AsyncSopes = new AsyncLocal<List<DisposableScope>>();
+        internal static readonly AsyncLocal<List<DisposableScope>> AsyncSopes = new AsyncLocal<List<DisposableScope>>();
 
-        private object m_State;
+        private object _state;
 
         internal ScopeManager(object state)
         {
-            m_State = state;
+            _state = state;
         }
 
         public string Current
@@ -26,7 +26,7 @@ namespace Daenet.Common.Logging.Sql
             get
             {
                 StringBuilder sb = new StringBuilder();
-                foreach (var item in m_AsyncSopes.Value)
+                foreach (var item in AsyncSopes.Value)
                 {
                     sb.Append($"/{item}");
                 }
@@ -39,12 +39,12 @@ namespace Daenet.Common.Logging.Sql
         {
             lock ("scope")
             {
-                if (m_AsyncSopes.Value == null)
-                    m_AsyncSopes.Value = new List<DisposableScope>();
+                if (AsyncSopes.Value == null)
+                    AsyncSopes.Value = new List<DisposableScope>();
 
                 var newScope = new DisposableScope(state.ToString(), this);
 
-                m_AsyncSopes.Value.Add(newScope);
+                AsyncSopes.Value.Add(newScope);
 
                 return newScope;
             }
@@ -52,37 +52,37 @@ namespace Daenet.Common.Logging.Sql
 
         public override string ToString()
         {
-            return m_State?.ToString();
+            return _state?.ToString();
         }
 
         internal class DisposableScope : IDisposable
         {
-            private ScopeManager m_ScopeMgr;
-            private string m_ScopeName;
+            private ScopeManager _scopeMgr;
+            private string _scopeName;
 
             public DisposableScope(string scopeName, ScopeManager scopeMgr)
             {
-                m_ScopeName = scopeName;
-                m_ScopeMgr = scopeMgr;
+                _scopeName = scopeName;
+                _scopeMgr = scopeMgr;
             }
 
             public void Dispose()
             {
                // lock ("scope")
                 //{
-                    var me = m_AsyncSopes.Value.FirstOrDefault(s => s == this);
+                    var me = AsyncSopes.Value.FirstOrDefault(s => s == this);
                     if (me == null)
                     {
                         throw new InvalidOperationException("This should never happen!");
                     }
 
-                    m_AsyncSopes.Value.Remove(me);
+                    AsyncSopes.Value.Remove(me);
                // }
             }
 
             public override string ToString()
             {
-                return m_ScopeName;
+                return _scopeName;
             }
         }
     }

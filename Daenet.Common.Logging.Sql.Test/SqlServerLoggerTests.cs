@@ -16,7 +16,7 @@ namespace Daenet.Common.Logging.Sql.Test
     public class SqlServerLoggerTests
     {
 #pragma warning disable SA1308 // Variable names must not be prefixed
-        private ILogger m_Logger;
+        private ILogger _logger;
 #pragma warning restore SA1308 // Variable names must not be prefixed
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Daenet.Common.Logging.Sql.Test
         /// </summary>
         public SqlServerLoggerTests()
         {
-            initializeSqlServerLogger(null);
+            InitializeSqlServerLogger();
         }
 
 
@@ -34,12 +34,12 @@ namespace Daenet.Common.Logging.Sql.Test
         [Fact]
         public void SqlLoggingTest()
         {
-            this.m_Logger.LogTrace("Test Trace Messages");
-            this.m_Logger.LogDebug("Test Debug Messages");
-            this.m_Logger.LogInformation("Test Information Messages");
-            this.m_Logger.LogWarning("Test Warning Messages");
-            this.m_Logger.LogError(new EventId(123, "Error123"), new Exception("new exception", new ArgumentNullException()), "Test Error Message");
-            this.m_Logger.LogCritical(new EventId(123, "Critical123"), new Exception("new exception", new ArgumentNullException()), "Test Critical Message");
+            this._logger.LogTrace("Test Trace Messages");
+            this._logger.LogDebug("Test Debug Messages");
+            this._logger.LogInformation("Test Information Messages");
+            this._logger.LogWarning("Test Warning Messages");
+            this._logger.LogError(new EventId(123, "Error123"), new Exception("new exception", new ArgumentNullException()), "Test Error Message");
+            this._logger.LogCritical(new EventId(123, "Critical123"), new Exception("new exception", new ArgumentNullException()), "Test Critical Message");
         }
 
 
@@ -49,15 +49,15 @@ namespace Daenet.Common.Logging.Sql.Test
         [Fact]
         public void SqlLoggingScopeTest()
         {
-            using (this.m_Logger.BeginScope($"Scope1"))
+            using (this._logger.BeginScope($"Scope1"))
             {
                 this.SqlLoggingTest();
 
-                using (this.m_Logger.BeginScope($"Scope2"))
+                using (this._logger.BeginScope($"Scope2"))
                 {
                     this.SqlLoggingTest();
 
-                    using (this.m_Logger.BeginScope($"Scope3"))
+                    using (this._logger.BeginScope($"Scope3"))
                     {
                         this.SqlLoggingTest();
                     }
@@ -69,13 +69,13 @@ namespace Daenet.Common.Logging.Sql.Test
         /// Initializes the logger
         /// </summary>
         /// <param name="filter">Filter used for logging.</param>
-        private void initializeSqlServerLogger(Func<string, LogLevel, bool> filter)
+        private void InitializeSqlServerLogger()
         {
             ConfigurationBuilder builder = new ConfigurationBuilder();
-            builder.AddJsonFile(@"SqlServerLoggerSettings.json");
+            builder.AddJsonFile(@"SqlLoggerSettings.json");
             var configRoot = builder.Build();
-            ILoggerFactory loggerFactory = new LoggerFactory().AddSqlServerLogger(configRoot.GetSqlServerLoggerSettings(), filter);
-            this.m_Logger = loggerFactory.CreateLogger<SqlServerLoggerTests>();
+            ILoggerFactory loggerFactory = new LoggerFactory().AddSqlServerLogger(configRoot.GetSqlLoggerSettings());
+            this._logger = loggerFactory.CreateLogger<SqlServerLoggerTests>();
         }
     }
 }

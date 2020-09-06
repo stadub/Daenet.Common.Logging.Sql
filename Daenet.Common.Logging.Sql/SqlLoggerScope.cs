@@ -6,22 +6,22 @@ using System.Threading;
 
 namespace Daenet.Common.Logging.Sql
 {
-    class SqlServerLoggerScope
+    class SqlLoggerScope
     {
         private readonly string _name;
         private readonly object _state;
 
-        internal SqlServerLoggerScope(string name, object state)
+        internal SqlLoggerScope(string name, object state)
         {
             _name = name;
             _state = state;
         }
 
-        public SqlServerLoggerScope Parent { get; private set; }
+        public SqlLoggerScope Parent { get; private set; }
         public string[] ScopeInformation { get; set; }
 
-        private static AsyncLocal<SqlServerLoggerScope> _value = new AsyncLocal<SqlServerLoggerScope>();
-        public static SqlServerLoggerScope Current
+        private static AsyncLocal<SqlLoggerScope> _value = new AsyncLocal<SqlLoggerScope>();
+        public static SqlLoggerScope Current
         {
             set
             {
@@ -36,7 +36,7 @@ namespace Daenet.Common.Logging.Sql
         public static IDisposable Push(string name, object state)
         {
             var temp = Current;
-            Current = new SqlServerLoggerScope(name, state);
+            Current = new SqlLoggerScope(name, state);
             Current.Parent = temp;
 
             return new DisposableScope();
@@ -55,7 +55,7 @@ namespace Daenet.Common.Logging.Sql
             return _state?.ToString();
         }
 
-        internal string[] GetScopeInformation(ISqlServerLoggerSettings settings)
+        internal string[] GetScopeInformation(ISqlLoggerSettings settings)
         {
             if (settings.ScopeColumnMapping != null || settings.ScopeColumnMapping.Count > 0)
             {

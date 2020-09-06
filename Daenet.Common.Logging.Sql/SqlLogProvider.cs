@@ -8,19 +8,21 @@ using System.Text;
 namespace Daenet.Common.Logging.Sql
 {
     [ProviderAlias("SqlProvider")]
-    public class SqlServerLogProvider : ILoggerProvider
+    public class SqlLogProvider : ILoggerProvider
     {
-        private ISqlServerLoggerSettings m_Settings;
-        private readonly ConcurrentDictionary<string, SqlServerLogger> m_Loggers = new ConcurrentDictionary<string, SqlServerLogger>();
+        private readonly ISqlBatchLogTask _logger;
+        private ISqlLoggerSettings _settings;
+        private readonly ConcurrentDictionary<string, SqlLogger> _loggers = new ConcurrentDictionary<string, SqlLogger>();
 
         /// <summary>
         /// Creates SQL Logger Provider 
         /// </summary>
         /// <param name="settings">Logger Settings</param>
         /// <param name="filter">TODO..</param>
-        public SqlServerLogProvider(ISqlServerLoggerSettings settings, Func<string, LogLevel, bool> filter)
+        public SqlLogProvider(ISqlBatchLogTask logger, ISqlLoggerSettings settings)
         {
-            this.m_Settings = settings;
+            this._settings = settings;
+            _logger = logger;
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace Daenet.Common.Logging.Sql
         /// </summary>
         /// <param name="settings">Logger Settings</param>
         /// <param name="filter">TODO..</param>
-        public SqlServerLogProvider(IOptions<SqlServerLoggerSettings> settings) : this(settings.Value, null)
+        public SqlLogProvider(ISqlBatchLogTask logger, IOptions<SqlLoggerSettings> settings) : this(logger, settings.Value)
         {
         }
 
@@ -39,12 +41,12 @@ namespace Daenet.Common.Logging.Sql
         /// <returns>Returns Logger</returns>
         public ILogger CreateLogger(string categoryName)
         {
-            return m_Loggers.GetOrAdd(categoryName, createLoggerImplementation);
+            return _loggers.GetOrAdd(categoryName, CreateLoggerImplementation);
         }
 
-        private SqlServerLogger createLoggerImplementation(string categoryName)
+        private SqlLogger CreateLoggerImplementation(string categoryName)
         {
-            return new SqlServerLogger(m_Settings, categoryName);
+            return new SqlLogger(_logger, _settings, categoryName);
         }
 
 

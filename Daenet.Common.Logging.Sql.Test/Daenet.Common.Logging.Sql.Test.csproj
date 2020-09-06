@@ -25,7 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Daenet.Common.Logging.Sql\Daenet.Common.Logging.Sql.csproj" />
+    <ProjectReference Include="..\Daenet.Common.Logging.SqlServer.csproj\Daenet.Common.Logging.SqlServer.csproj" />
+    <ProjectReference Include="..\Daenet.Common.Logging.Sql\Daenet.Common.Logging.SqlProvider.csproj" />
   </ItemGroup>
 
   <ItemGroup>

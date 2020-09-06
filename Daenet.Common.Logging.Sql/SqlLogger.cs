@@ -10,61 +10,45 @@ using System.Linq;
 
 namespace Daenet.Common.Logging.Sql
 {
-    public class SqlServerLogger : ILogger
+    public class SqlLogger : ILogger
     {
+        private readonly ISqlBatchLogTask _logger;
+
         /// <summary>
         /// Set on true if the Logging fails and it is set on IgnoreLoggingErrors.
         /// </summary>
-        private bool m_IsLoggingDisabledOnError = false;
+        private bool _isLoggingDisabledOnError = false;
 
-        private bool m_IgnoreLoggingErrors = false;
-        private ISqlServerLoggerSettings m_Settings;
-        private Func<string, LogLevel, bool> m_Filter;
-        private string m_CategoryName;
-
-
-        private static SqlBatchLogTask currentLogTaskInstance = null;
-        private static readonly object padlock = new object();
-
-        private SqlBatchLogTask m_CurrentLogTask
-        {
-            get
-            {
-                lock (padlock)
-                {
-                    if (currentLogTaskInstance == null)
-                    {
-                        currentLogTaskInstance = new SqlBatchLogTask(m_Settings);
-                    }
-                    return currentLogTaskInstance;
-                }
-            }
-        }
+        private readonly bool _ignoreLoggingErrors = false;
+        private ISqlLoggerSettings _settings;
+        private Func<string, LogLevel, bool> _filter;
+        private string _categoryName;
 
 //    public Func<LogLevel, EventId, object, Exception, SqlCommand> SqlCommandFormatter { get; set; }
 
         #region Public Methods
 
-        public SqlServerLogger(ISqlServerLoggerSettings settings, string categoryName, Func<string, LogLevel, bool> filter = null)
+        public SqlLogger(ISqlBatchLogTask logger, ISqlLoggerSettings settings, string categoryName, Func<string, LogLevel, bool> filter = null)
         {
+            _logger = logger;
             try
             {
-                m_Settings = settings;
+                _settings = settings;
 
-                if (m_Settings.ScopeSeparator == null)
-                    m_Settings.ScopeSeparator = "=>";
+                if (_settings.ScopeSeparator == null)
+                    _settings.ScopeSeparator = "=>";
 
-                m_CategoryName = categoryName;
+                _categoryName = categoryName;
                 if (filter == null)
-                    m_Filter = ((category, logLevel) => true);
+                    _filter = ((category, logLevel) => true);
                 else
-                    m_Filter = filter;
+                    _filter = filter;
 
-                m_IgnoreLoggingErrors = settings.IgnoreLoggingErrors;
+                _ignoreLoggingErrors = settings.IgnoreLoggingErrors;
             }
             catch (Exception ex)
             {
-                handleError(ex);
+                HandleError(ex);
             }
         }
 
@@ -90,7 +74,7 @@ namespace Daenet.Common.Logging.Sql
             //    var formattedException = exceptionFormatter(state, exception);
             //}
 
-            m_CurrentLogTask.Push(logLevel, eventId, state, exception, m_CategoryName);
+            _logger.Push(logLevel, eventId, state, exception, _categoryName);
         }
 
 
@@ -107,7 +91,7 @@ namespace Daenet.Common.Logging.Sql
                 throw new ArgumentNullException(nameof(state));
             }
 
-            return SqlServerLoggerScope.Push("SqlServerLogger", state);
+            return SqlLoggerScope.Push("SqlLogger", state);
         }
 
         /// <summary>
@@ -117,10 +101,10 @@ namespace Daenet.Common.Logging.Sql
         /// <returns></returns>
         public bool IsEnabled(LogLevel logLevel)
         {
-            if (m_IsLoggingDisabledOnError)
+            if (_isLoggingDisabledOnError)
                 return false;
 
-            return m_Filter(m_CategoryName, logLevel);
+            return _filter(_categoryName, logLevel);
         }
 
         #endregion
@@ -128,18 +112,18 @@ namespace Daenet.Common.Logging.Sql
         #region Private Methods
 
         //TODO: Please test ignore errors if logging fails. See IgnoreLoggingErrors.
-        private void handleError(Exception ex)
+        private void HandleError(Exception ex)
         {
 
-            if (m_IgnoreLoggingErrors)
+            if (_ignoreLoggingErrors)
             {
-                if (m_IsLoggingDisabledOnError == false)
+                if (_isLoggingDisabledOnError == false)
                 {
                     //TODO - Should log somewhere else later.
                     Debug.WriteLine($"Logging has failed and it will be disabled. Error: {ex}");
                 }
 
-                m_IsLoggingDisabledOnError = true;
+                _isLoggingDisabledOnError = true;
             }
             else
                 throw new Exception("Ignore Error is disabled.", ex);

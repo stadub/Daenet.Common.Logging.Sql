@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Daenet.Common.Logging.Sql
 {
-    public class SqlServerLoggerSettings : ISqlServerLoggerSettings
+    public class SqlLoggerSettings : ISqlLoggerSettings
     {
         public bool IncludeScopes { get; set; }
 
