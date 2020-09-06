@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Lesofto.Common.Logging.Sqlite</AssemblyName>
+    <RootNamespace>Lesofto.Common.Logging.Sqlite</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="sqlite-net-pcl" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Daenet.Common.Logging.Sql\Daenet.Common.Logging.SqlProvider.csproj" />
+  </ItemGroup>
+
+</Project>
